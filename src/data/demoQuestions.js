@@ -1,0 +1,66 @@
+/**
+ * Questions de démonstration utilisées quand Supabase n'est pas configuré
+ * (mode démo local, sans temps réel).
+ */
+export const DEMO_QUESTIONS = [
+  {
+    id: 'demo-1',
+    question_text: "Quelle plateforme est spécialisée dans le streaming de jeux vidéo en direct ?",
+    choice_a: 'Netflix',
+    choice_b: 'Twitch',
+    choice_c: 'Spotify',
+    choice_d: 'Deezer',
+    correct_answer: 'B',
+    difficulty_level: 'facile',
+  },
+  {
+    id: 'demo-2',
+    question_text: 'Quelle est la capitale du Japon ?',
+    choice_a: 'Kyoto',
+    choice_b: 'Osaka',
+    choice_c: 'Pékin',
+    choice_d: 'Tokyo',
+    correct_answer: 'D',
+    difficulty_level: 'facile',
+  },
+  {
+    id: 'demo-3',
+    question_text: "En quelle année l'homme a-t-il marché sur la Lune pour la première fois ?",
+    choice_a: '1965',
+    choice_b: '1969',
+    choice_c: '1972',
+    choice_d: '1975',
+    correct_answer: 'B',
+    difficulty_level: 'moyen',
+  },
+  {
+    id: 'demo-4',
+    question_text: 'Quel studio a créé le jeu « The Legend of Zelda » ?',
+    choice_a: 'Sony',
+    choice_b: 'Microsoft',
+    choice_c: 'Nintendo',
+    choice_d: 'Ubisoft',
+    correct_answer: 'C',
+    difficulty_level: 'moyen',
+  },
+  {
+    id: 'demo-5',
+    question_text: 'En SQL, quelle clause permet de filtrer des groupes après un GROUP BY ?',
+    choice_a: 'WHERE',
+    choice_b: 'HAVING',
+    choice_c: 'ORDER BY',
+    choice_d: 'LIMIT',
+    correct_answer: 'B',
+    difficulty_level: 'difficile',
+  },
+  {
+    id: 'demo-6',
+    question_text: 'Quel port est utilisé par défaut pour HTTPS ?',
+    choice_a: '80',
+    choice_b: '21',
+    choice_c: '443',
+    choice_d: '8080',
+    correct_answer: 'C',
+    difficulty_level: 'difficile',
+  },
+]
