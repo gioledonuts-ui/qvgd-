@@ -1,6 +1,6 @@
 # Déploiement — Vercel + OBS
 
-Guide pas à pas pour héberger le Studio Quiz sur Vercel et afficher l'overlay dans OBS.
+Guide pas à pas pour héberger le QUIZ NOIR sur Vercel et afficher l'overlay dans OBS.
 
 ## 1. Préparer le code
 

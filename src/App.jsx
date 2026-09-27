@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { BRAND } from './brand'
 import ModeratorDashboard from './components/ModeratorDashboard'
 import LiveOverlay from './components/LiveOverlay'
 import PinGate from './components/PinGate'
@@ -24,7 +25,7 @@ export default function App() {
   )
 
   if (isOverlay) {
-    document.title = 'Studio Quiz — Overlay Live'
+    document.title = `${BRAND.name} — Overlay Live`
     return <LiveOverlay />
   }
   if (!unlocked) return <PinGate onUnlock={() => setUnlocked(true)} />

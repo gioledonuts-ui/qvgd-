@@ -1,4 +1,4 @@
-# Studio Quiz — Twitch Live
+# QUIZ NOIR — Twitch Live
 
 Application web de quiz pour stream Twitch : **console modérateur** (régie) + **overlay live** temps réel, construite avec React, TailwindCSS et Supabase.
 

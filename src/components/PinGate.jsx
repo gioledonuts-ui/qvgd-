@@ -1,11 +1,13 @@
 import { useState } from 'react'
+import { BRAND } from '../brand'
+import { Wordmark, Ticker } from './Brand'
 
 const PIN = import.meta.env.VITE_MODERATOR_PIN || '2026'
 
 /**
- * Sas d'accès modérateur : un code PIN simple côté client.
- * ⚠️ Protection d'appoint pour l'UI. La vraie sécurité en production
- * passe par Supabase Auth + politiques RLS `authenticated` (voir schema.sql).
+ * Sas d'accès régie : code PIN côté client (appoint).
+ * La vraie sécurité en production passe par Supabase Auth
+ * + politiques RLS `authenticated` (voir schema.sql).
  */
 export default function PinGate({ onUnlock }) {
   const [code, setCode] = useState('')
@@ -24,25 +26,24 @@ export default function PinGate({ onUnlock }) {
   }
 
   return (
-    <div className="min-h-full flex items-center justify-center px-4 py-16">
-      <div className="w-full max-w-sm">
-        <div className="flex items-center gap-3 mb-8 justify-center">
-          <span className="onair-dot inline-block h-3.5 w-3.5 rounded-full bg-live-500" />
-          <span className="font-display text-sm font-bold tracking-[0.3em] text-white/90">
-            STUDIO&nbsp;QUIZ
-          </span>
-        </div>
-
-        <div className="panel-texture rounded-2xl border border-white/10 bg-night-900/80 p-8 shadow-[0_24px_80px_-24px_rgba(0,0,0,0.8)]">
-          <p className="text-[11px] font-bold tracking-[0.25em] text-white/40">ZONE RÉGIE</p>
-          <h1 className="font-display mt-2 text-2xl font-bold text-white">
-            Console modérateur
+    <div className="grain flex min-h-full flex-col">
+      <Ticker
+        items={[BRAND.name, 'Zone régie', 'Accès modérateur']}
+        className="border-b border-paper/10 py-2.5 text-paper/50"
+      />
+      <div className="flex flex-1 items-center justify-center px-4 py-16">
+        <div className="w-full max-w-md">
+          <div className="flex justify-center">
+            <Wordmark />
+          </div>
+          <h1 className="font-display mt-8 text-center text-6xl font-semibold uppercase leading-[0.95] tracking-tight text-paper">
+            Ré<span className="text-signal-500">g</span>ie
           </h1>
-          <p className="mt-2 text-sm text-white/55">
-            Saisissez le code d'accès pour piloter le live.
+          <p className="mt-4 text-center font-mono text-[11px] uppercase tracking-[0.3em] text-paper-dim">
+            Saisissez le code d'accès
           </p>
 
-          <form onSubmit={submit} className="mt-6">
+          <form onSubmit={submit} className="mx-auto mt-8 max-w-xs">
             <input
               type="password"
               inputMode="numeric"
@@ -50,30 +51,27 @@ export default function PinGate({ onUnlock }) {
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder="••••"
-              className={`w-full rounded-xl border bg-night-950/80 px-4 py-3.5 text-center text-2xl font-bold tracking-[0.5em] text-white placeholder:text-white/20 outline-none transition ${
-                error
-                  ? 'border-live-500'
-                  : 'border-white/10 focus:border-signal-400/70'
+              className={`w-full border bg-ink-900 px-4 py-4 text-center font-mono text-3xl font-bold tracking-[0.6em] text-paper placeholder:text-paper/15 outline-none transition ${
+                error ? 'border-signal-500' : 'border-paper/20 focus:border-signal-500'
               }`}
             />
             {error && (
-              <p className="slide-up mt-3 text-center text-sm font-medium text-live-500">
-                Code incorrect — réessayez.
+              <p className="rise-in mt-3 text-center font-mono text-xs uppercase tracking-[0.2em] text-signal-500">
+                Code incorrect
               </p>
             )}
             <button
               type="submit"
-              className="mt-5 w-full rounded-xl bg-white px-4 py-3 font-display text-sm font-bold tracking-wide text-night-950 transition hover:bg-white/90 active:scale-[0.99]"
+              className="mt-4 w-full bg-paper px-4 py-4 font-display text-sm font-semibold uppercase tracking-[0.14em] text-ink-950 transition hover:bg-white active:scale-[0.99]"
             >
-              DÉVERROUILLER LA RÉGIE
+              Déverrouiller
             </button>
           </form>
-        </div>
 
-        <p className="mt-6 text-center text-xs text-white/30">
-          L'overlay public du live est accessible sans code via{' '}
-          <span className="font-mono text-white/50">/overlay</span>
-        </p>
+          <p className="mt-8 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-paper/30">
+            Overlay public sans code : /overlay
+          </p>
+        </div>
       </div>
     </div>
   )

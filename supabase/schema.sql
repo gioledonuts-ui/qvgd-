@@ -1,5 +1,5 @@
 -- ============================================================
--- STUDIO QUIZ TWITCH — Schéma Supabase
+-- QUIZ NOIR — Twitch — Schéma Supabase
 -- À exécuter dans l'éditeur SQL de Supabase (Dashboard > SQL Editor)
 -- ============================================================
 

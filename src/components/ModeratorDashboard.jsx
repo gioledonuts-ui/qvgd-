@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
+import { BRAND } from '../brand'
 import { useStudio, LETTERS } from '../hooks/useStudio'
+import { Wordmark, SectionLabel, Ticker } from './Brand'
 
 const DIFFICULTIES = [
   { id: 'mixte', label: 'Mixte' },
@@ -8,18 +10,12 @@ const DIFFICULTIES = [
   { id: 'difficile', label: 'Difficile' },
 ]
 
-const DIFFICULTY_STYLE = {
-  facile: 'bg-emerald-400/10 text-emerald-300 border-emerald-400/25',
-  moyen: 'bg-gold-400/10 text-gold-400 border-gold-400/30',
-  difficile: 'bg-live-500/10 text-live-500 border-live-500/30',
-}
-
 const LOG_COLOR = {
-  info: 'bg-white/30',
-  live: 'bg-live-500',
+  info: 'bg-paper/30',
+  live: 'bg-signal-500',
   success: 'bg-emerald-400',
-  warn: 'bg-gold-400',
-  joker: 'bg-signal-400',
+  warn: 'bg-amber-400',
+  joker: 'bg-sky-400',
 }
 
 function Clock() {
@@ -29,29 +25,82 @@ function Clock() {
     return () => clearInterval(t)
   }, [])
   return (
-    <span className="font-mono text-sm tabular-nums text-white/70">
+    <span className="font-mono text-sm tabular-nums text-paper/80">
       {time.toLocaleTimeString('fr-FR')}
     </span>
   )
 }
 
-function StatusBadge({ status }) {
+function StatusBlock({ status }) {
   if (status === 'question_live')
     return (
-      <span className="inline-flex items-center gap-2 rounded-full border border-live-500/40 bg-live-500/10 px-3 py-1 text-xs font-bold tracking-widest text-live-500">
-        <span className="onair-dot h-2 w-2 rounded-full bg-live-500" /> ON AIR — QUESTION
+      <span className="inline-flex items-center gap-2 bg-signal-500 px-3 py-1.5 font-mono text-[11px] font-bold tracking-[0.2em] text-ink-950">
+        <span className="onair-blink inline-block h-2 w-2 bg-ink-950" />
+        ON AIR — QUESTION
       </span>
     )
   if (status === 'answer_revealed')
     return (
-      <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-3 py-1 text-xs font-bold tracking-widest text-emerald-300">
-        <span className="h-2 w-2 rounded-full bg-emerald-400" /> ON AIR — RÉPONSE RÉVÉLÉE
+      <span className="inline-flex items-center gap-2 bg-emerald-400 px-3 py-1.5 font-mono text-[11px] font-bold tracking-[0.2em] text-ink-950">
+        <span className="inline-block h-2 w-2 bg-ink-950" />
+        ON AIR — RÉVÉLÉE
       </span>
     )
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-bold tracking-widest text-white/50">
-      <span className="h-2 w-2 rounded-full bg-white/30" /> STANDBY
+    <span className="inline-flex items-center gap-2 border border-paper/20 px-3 py-1.5 font-mono text-[11px] font-bold tracking-[0.2em] text-paper-dim">
+      <span className="inline-block h-2 w-2 bg-paper/30" />
+      STANDBY
     </span>
+  )
+}
+
+function ObsOutput() {
+  const [copied, setCopied] = useState(null)
+  const origin = window.location.origin
+  const urlFull = `${origin}/overlay`
+  const urlLower = `${origin}/overlay?transparent=1&layout=lower`
+
+  const copy = async (url, key) => {
+    try {
+      await navigator.clipboard.writeText(url)
+    } catch {
+      const ta = document.createElement('textarea')
+      ta.value = url
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+    }
+    setCopied(key)
+    window.setTimeout(() => setCopied(null), 1800)
+  }
+
+  return (
+    <section className="border border-paper/10 bg-ink-900 p-5">
+      <SectionLabel number="05">Sortie OBS</SectionLabel>
+      <div className="mt-4 flex items-center gap-2 border border-paper/10 bg-ink-950 px-3 py-2.5">
+        <span className="h-2 w-2 shrink-0 bg-emerald-400" />
+        <code className="truncate font-mono text-xs text-paper/75">{urlFull}</code>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <button
+          onClick={() => copy(urlFull, 'full')}
+          className="bg-paper px-3 py-3 font-display text-xs font-semibold uppercase tracking-[0.14em] text-ink-950 transition hover:bg-white active:scale-[0.98]"
+        >
+          {copied === 'full' ? '✓ Copié' : '⧉ Plein écran'}
+        </button>
+        <button
+          onClick={() => copy(urlLower, 'lower')}
+          className="border border-paper/25 px-3 py-3 font-display text-xs font-semibold uppercase tracking-[0.14em] text-paper transition hover:border-paper/60 active:scale-[0.98]"
+        >
+          {copied === 'lower' ? '✓ Copié' : '⧉ Lower third'}
+        </button>
+      </div>
+      <p className="mt-3 text-xs leading-relaxed text-paper-dim">
+        À coller dans OBS : <span className="text-paper">Sources → + → Navigateur</span>.
+        « Lower third » = bandeau bas transparent par-dessus votre jeu.
+      </p>
+    </section>
   )
 }
 
@@ -68,7 +117,6 @@ export default function ModeratorDashboard() {
   const [pendingChoice, setPendingChoice] = useState(null)
   const [confirmingJoker, setConfirmingJoker] = useState(false)
 
-  // Toute nouvelle question annule les validations en cours
   useEffect(() => {
     setPendingChoice(null)
     setConfirmingJoker(false)
@@ -97,64 +145,54 @@ export default function ModeratorDashboard() {
   const revealed = status === 'answer_revealed'
 
   return (
-    <div className="min-h-full">
+    <div className="grain min-h-full">
+      {/* Bandeau antenne */}
+      <Ticker
+        items={[BRAND.name, 'En direct', BRAND.tagline, 'Régie modérateur']}
+        className="border-b border-ink-950 bg-signal-500 py-1.5 text-ink-950"
+      />
+
       {/* ================= BARRE RÉGIE ================= */}
-      <header className="sticky top-0 z-30 border-b border-white/10 bg-night-950/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 sm:px-6 py-3">
-          <div className="flex items-center gap-3">
-            <span className="onair-dot inline-block h-3 w-3 rounded-full bg-live-500" />
-            <div className="leading-tight">
-              <p className="font-display text-sm font-bold tracking-[0.22em] text-white">
-                STUDIO QUIZ
-              </p>
-              <p className="text-[10px] font-medium tracking-[0.28em] text-white/40">
-                CONSOLE MODÉRATEUR
-              </p>
-            </div>
+      <header className="sticky top-0 z-30 border-b border-paper/10 bg-ink-950/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
+          <Wordmark />
+          <div className="ml-2 hidden sm:block">
+            <StatusBlock status={status} />
           </div>
-
-          <div className="ml-4 hidden sm:block">
-            <StatusBadge status={status} />
-          </div>
-
-          <div className="ml-auto flex items-center gap-3 sm:gap-4">
+          <div className="ml-auto flex items-center gap-3 sm:gap-5">
             <span
-              className={`hidden md:inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold tracking-wider ${
-                isLive
-                  ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300'
-                  : 'border-gold-400/30 bg-gold-400/10 text-gold-400'
+              className={`hidden font-mono text-[10px] font-bold uppercase tracking-[0.2em] md:inline ${
+                isLive ? 'text-emerald-400' : 'text-amber-400'
               }`}
               title={isLive ? 'Connecté à Supabase Realtime' : 'Supabase non configuré — mode démo local'}
             >
-              <span className={`h-1.5 w-1.5 rounded-full ${isLive ? 'bg-emerald-400' : 'bg-gold-400'}`} />
-              {isLive ? 'SUPABASE LIVE' : 'MODE DÉMO'}
+              {isLive ? '● Supabase live' : '● Mode démo'}
             </span>
             <Clock />
             <a
               href="/overlay"
               target="_blank"
               rel="noreferrer"
-              className="rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold tracking-wider text-white/80 transition hover:border-white/30 hover:text-white"
+              className="border border-paper/25 px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-paper transition hover:border-signal-500 hover:text-signal-500"
             >
-              ↗ OVERLAY
+              Overlay ↗
             </a>
           </div>
         </div>
-        <div className="sm:hidden px-4 pb-3">
-          <StatusBadge status={status} />
+        <div className="px-4 pb-3 sm:hidden">
+          <StatusBlock status={status} />
         </div>
       </header>
 
-      {/* ================= NOTICE ================= */}
       {notice && (
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-4">
+        <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6">
           <div
-            className={`slide-up rounded-xl border px-4 py-3 text-sm font-medium ${
+            className={`rise-in border-l-4 px-4 py-3 font-mono text-[13px] ${
               notice.type === 'error'
-                ? 'border-live-500/40 bg-live-500/10 text-red-200'
+                ? 'border-signal-500 bg-signal-500/10 text-paper'
                 : notice.type === 'warn'
-                  ? 'border-gold-400/40 bg-gold-400/10 text-amber-100'
-                  : 'border-emerald-400/40 bg-emerald-400/10 text-emerald-100'
+                  ? 'border-amber-400 bg-amber-400/10 text-paper'
+                  : 'border-emerald-400 bg-emerald-400/10 text-paper'
             }`}
           >
             {notice.message}
@@ -162,99 +200,98 @@ export default function ModeratorDashboard() {
         </div>
       )}
 
-      <main className="mx-auto grid max-w-7xl gap-5 px-4 sm:px-6 py-6 lg:grid-cols-[1fr_340px]">
+      <main className="mx-auto grid max-w-7xl gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_340px]">
         {/* ================= COLONNE PRINCIPALE ================= */}
         <div className="space-y-5">
-          {/* ----- Génération ----- */}
-          <section className="panel-texture rounded-2xl border border-white/10 bg-night-900/70 p-5">
-            <div className="flex flex-wrap items-center gap-3">
-              <div>
-                <p className="text-[11px] font-bold tracking-[0.25em] text-white/40">
-                  01 — DIFFICULTÉ
-                </p>
-                <div className="mt-2 flex rounded-xl border border-white/10 bg-night-950/70 p-1">
-                  {DIFFICULTIES.map((d) => (
-                    <button
-                      key={d.id}
-                      onClick={() => setDifficulty(d.id)}
-                      className={`rounded-lg px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold transition ${
-                        difficulty === d.id
-                          ? 'bg-white text-night-950 shadow'
-                          : 'text-white/55 hover:text-white'
-                      }`}
-                    >
-                      {d.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+          {/* ----- 01 Tirage ----- */}
+          <section className="border border-paper/10 bg-ink-900 p-5 sm:p-6">
+            <SectionLabel
+              number="01"
+              right={
+                <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-paper-dim">
+                  Stock : <span className="font-bold text-paper">{remaining ?? '—'}</span>
+                </span>
+              }
+            >
+              Tirage de la question
+            </SectionLabel>
 
-              <div className="ml-auto flex items-center gap-3">
-                <div className="text-right">
-                  <p className="font-display text-2xl font-bold leading-none text-white">
-                    {remaining ?? '—'}
-                  </p>
-                  <p className="mt-1 text-[10px] font-bold tracking-[0.2em] text-white/40">
-                    EN STOCK
-                  </p>
-                </div>
-                <button
-                  onClick={() => studio.generate(difficulty)}
-                  disabled={loading}
-                  className="group relative overflow-hidden rounded-xl bg-live-500 px-5 sm:px-7 py-3.5 font-display text-sm font-bold tracking-widest text-white shadow-[0_12px_40px_-12px_rgba(255,59,92,0.7)] transition hover:bg-live-600 active:scale-[0.98] disabled:opacity-50"
-                >
-                  {loading ? 'TIRAGE…' : '⚡ GÉNÉRER UNE QUESTION'}
-                </button>
+            <div className="mt-5 flex flex-col gap-4 xl:flex-row xl:items-end">
+              <div className="flex border border-paper/15">
+                {DIFFICULTIES.map((d, i) => (
+                  <button
+                    key={d.id}
+                    onClick={() => setDifficulty(d.id)}
+                    className={`px-4 py-3 font-display text-sm font-semibold uppercase tracking-wide transition sm:px-6 ${
+                      i > 0 ? 'border-l border-paper/15' : ''
+                    } ${
+                      difficulty === d.id
+                        ? 'bg-paper text-ink-950'
+                        : 'text-paper-dim hover:text-paper'
+                    }`}
+                  >
+                    {d.label}
+                  </button>
+                ))}
               </div>
+              <button
+                onClick={() => studio.generate(difficulty)}
+                disabled={loading}
+                className="bg-signal-500 px-8 py-4 font-display text-base font-semibold uppercase tracking-wide text-ink-950 transition hover:bg-signal-400 active:scale-[0.99] disabled:opacity-50 xl:ml-auto"
+              >
+                {loading ? 'Tirage en cours…' : '→ Générer une question'}
+              </button>
             </div>
 
-            <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/5 pt-4">
+            <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 border-t border-paper/10 pt-4">
               <button
                 onClick={studio.resetLive}
-                className="rounded-lg px-3 py-1.5 text-xs font-bold tracking-wider text-white/45 transition hover:bg-white/5 hover:text-white/80"
+                className="font-mono text-[11px] uppercase tracking-[0.18em] text-paper-dim transition hover:text-paper"
               >
-                ■ RÉINITIALISER LE LIVE
+                ■ Réinitialiser le live
               </button>
               <button
                 onClick={studio.resetStock}
-                className="rounded-lg px-3 py-1.5 text-xs font-bold tracking-wider text-white/45 transition hover:bg-white/5 hover:text-white/80"
+                className="font-mono text-[11px] uppercase tracking-[0.18em] text-paper-dim transition hover:text-paper"
               >
-                ↺ RÉINITIALISER LE STOCK
+                ↺ Réinitialiser le stock
               </button>
             </div>
           </section>
 
-          {/* ----- Question & réponses ----- */}
-          <section className="rounded-2xl border border-white/10 bg-night-900/70 p-5 sm:p-7">
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-bold tracking-[0.25em] text-white/40">
-                02 — QUESTION À L'ANTENNE
-              </p>
-              {question && (
-                <span
-                  className={`rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-widest ${DIFFICULTY_STYLE[question.difficulty_level]}`}
-                >
-                  {question.difficulty_level}
-                </span>
-              )}
-            </div>
+          {/* ----- 02 Antenne ----- */}
+          <section className="border border-paper/10 bg-ink-900 p-5 sm:p-8">
+            <SectionLabel
+              number="02"
+              right={
+                question && (
+                  <span className="bg-paper px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-ink-950">
+                    {question.difficulty_level}
+                  </span>
+                )
+              }
+            >
+              Question à l'antenne
+            </SectionLabel>
 
             {!question ? (
-              <div className="mt-6 rounded-xl border border-dashed border-white/15 bg-night-950/50 px-6 py-14 text-center">
-                <p className="font-display text-xl font-bold text-white/60">
-                  Aucune question à l'antenne
+              <div className="mt-8 border border-dashed border-paper/20 px-6 py-16 text-center">
+                <p className="font-display text-3xl font-medium uppercase tracking-tight text-paper/50">
+                  Antenne vide
                 </p>
-                <p className="mt-2 text-sm text-white/35">
-                  Cliquez sur « Générer une question » pour lancer le quiz sur le live.
+                <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-paper-dim">
+                  Lancez le tirage pour envoyer la première question sur le live.
+                  Les viewers voient l'écran d'attente.
                 </p>
               </div>
             ) : (
-              <div key={question.id} className="ticker-in">
-                <h2 className="font-display mt-4 text-2xl sm:text-[28px] font-bold leading-snug text-white">
+              <div key={question.id} className="ticker-in mt-6">
+                <h2 className="font-display max-w-3xl text-3xl font-medium leading-[1.08] tracking-tight text-paper sm:text-[40px]">
                   {question.question_text}
                 </h2>
 
-                <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                {/* Liste éditoriale des réponses */}
+                <div className="mt-8 border-b border-paper/15">
                   {LETTERS.map((letter) => {
                     const isPending = pendingChoice === letter
                     const isRevealed = revealed && revealedChoice === letter
@@ -267,97 +304,102 @@ export default function ModeratorDashboard() {
                         key={letter}
                         onClick={() => handlePick(letter)}
                         disabled={!questionLive || isHidden}
-                        className={`group relative rounded-xl border p-[1px] text-left transition-all duration-200 ${
+                        className={`group relative flex w-full items-center gap-4 border-t border-paper/15 px-2 py-4 text-left transition-colors sm:gap-6 sm:px-4 sm:py-5 ${
                           isRevealed
-                            ? 'border-emerald-400/60'
+                            ? 'bg-emerald-400/[0.07]'
                             : isPending
-                              ? 'border-gold-400 pending-glow'
-                              : 'border-white/10 hover:border-white/25'
-                        } ${dimmed && !isRevealed ? 'opacity-40' : ''} ${
+                              ? 'bg-signal-500/[0.08]'
+                              : questionLive && !isHidden
+                                ? 'hover:bg-paper/[0.04]'
+                                : ''
+                        } ${dimmed && !isRevealed ? 'opacity-35' : ''} ${
                           !questionLive ? 'cursor-default' : 'cursor-pointer'
                         }`}
                       >
-                        <div
-                          className={`flex items-center gap-3 rounded-[11px] px-4 py-4 ${
+                        {/* Barre de présélection */}
+                        <span
+                          className={`absolute left-0 top-0 h-full w-1 transition-all ${
                             isRevealed
-                              ? 'bg-emerald-400/10'
+                              ? 'bg-emerald-400'
                               : isPending
-                                ? 'bg-gold-400/10'
-                                : 'bg-night-950/60 group-hover:bg-night-950'
+                                ? 'pending-bar bg-signal-500'
+                                : 'bg-transparent group-hover:bg-paper/20'
+                          }`}
+                        />
+                        <span
+                          className={`font-display text-3xl font-semibold tracking-tight sm:text-4xl ${
+                            isRevealed
+                              ? 'text-emerald-400'
+                              : isPending
+                                ? 'text-signal-500'
+                                : 'text-paper/35 group-hover:text-paper/70'
                           }`}
                         >
-                          <span
-                            className={`font-display flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-base font-bold ${
-                              isRevealed
-                                ? 'bg-emerald-400 text-night-950'
-                                : isPending
-                                  ? 'bg-gold-400 text-night-950'
-                                  : 'bg-white/10 text-white/80'
-                            }`}
-                          >
-                            {letter}
+                          {letter}
+                        </span>
+                        <span
+                          className={`text-base font-medium sm:text-lg ${
+                            isHidden ? 'text-paper/30 line-through' : 'text-paper'
+                          }`}
+                        >
+                          {choiceText(letter)}
+                        </span>
+                        {isCorrect && (
+                          <span className="ml-auto hidden shrink-0 border border-emerald-400/40 px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-400 md:inline-block">
+                            ✓ Régie
                           </span>
-                          <span
-                            className={`text-[15px] font-medium leading-snug ${
-                              isHidden ? 'line-through text-white/40' : 'text-white/90'
-                            }`}
-                          >
-                            {choiceText(letter)}
+                        )}
+                        {isHidden && (
+                          <span className="ml-auto shrink-0 font-mono text-[10px] uppercase tracking-[0.18em] text-paper/30 line-through">
+                            Éliminée
                           </span>
-
-                          {/* Indication modérateur uniquement — jamais diffusée telle quelle */}
-                          {isCorrect && (
-                            <span className="ml-auto hidden shrink-0 items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-bold tracking-wider text-emerald-300 xl:inline-flex">
-                              ✓ RÉGIE
-                            </span>
-                          )}
-                          {isHidden && (
-                            <span className="ml-auto shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold tracking-wider text-white/50">
-                              ÉLIMINÉE
-                            </span>
-                          )}
-                        </div>
+                        )}
+                        {isRevealed && (
+                          <span className="ml-auto shrink-0 bg-emerald-400 px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-ink-950">
+                            À l'antenne
+                          </span>
+                        )}
                       </button>
                     )
                   })}
                 </div>
 
-                {/* ----- DOUBLE VALIDATION : réponse ----- */}
+                {/* ----- DOUBLE VALIDATION ----- */}
                 {questionLive && !pendingChoice && (
-                  <p className="mt-5 text-center text-xs font-medium tracking-wider text-white/35">
-                    ↑ Cliquez sur une réponse pour la présélectionner —{' '}
-                    <span className="text-white/60">rien n'est envoyé au live sans confirmation.</span>
+                  <p className="mt-6 border border-paper/15 px-4 py-3 text-center font-mono text-[11px] uppercase leading-relaxed tracking-[0.14em] text-paper-dim">
+                    Cliquez sur une réponse pour la présélectionner —{' '}
+                    <span className="text-paper">rien ne part à l'antenne sans confirmation</span>
                   </p>
                 )}
 
                 {questionLive && pendingChoice && (
-                  <div className="slide-up mt-5 rounded-xl border border-gold-400/40 bg-gold-400/[0.07] p-4">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                      <div className="flex items-center gap-3">
-                        <span className="font-display flex h-11 w-11 items-center justify-center rounded-xl bg-gold-400 text-xl font-bold text-night-950">
+                  <div className="rise-in mt-6 border border-signal-500/60 bg-signal-500/[0.06]">
+                    <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
+                      <div className="flex items-center gap-4">
+                        <span className="font-display bg-signal-500 px-4 py-2 text-3xl font-semibold text-ink-950">
                           {pendingChoice}
                         </span>
                         <div>
-                          <p className="font-display text-sm font-bold tracking-wider text-gold-400">
-                            RÉPONSE PRÉSÉLECTIONNÉE — EN ATTENTE
+                          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.22em] text-signal-500">
+                            Présélection — en attente
                           </p>
-                          <p className="mt-0.5 text-sm text-white/60">
-                            « {choiceText(pendingChoice)} » — confirmez pour l'envoyer au live.
+                          <p className="mt-1 text-sm text-paper/75">
+                            « {choiceText(pendingChoice)} » — confirmez pour envoyer à l'antenne.
                           </p>
                         </div>
                       </div>
                       <div className="flex gap-2 sm:ml-auto">
                         <button
                           onClick={() => setPendingChoice(null)}
-                          className="rounded-xl border border-white/20 bg-transparent px-5 py-2.5 text-sm font-bold text-white/70 transition hover:border-white/40 hover:text-white"
+                          className="border border-paper/25 px-5 py-3 font-display text-sm font-semibold uppercase tracking-wide text-paper/80 transition hover:border-paper/60 hover:text-paper"
                         >
                           Annuler
                         </button>
                         <button
                           onClick={handleConfirm}
-                          className="rounded-xl bg-emerald-400 px-5 py-2.5 font-display text-sm font-bold tracking-wide text-night-950 shadow-[0_10px_30px_-10px_rgba(52,211,153,0.8)] transition hover:bg-emerald-300 active:scale-[0.98]"
+                          className="bg-emerald-400 px-5 py-3 font-display text-sm font-semibold uppercase tracking-wide text-ink-950 transition hover:bg-emerald-300 active:scale-[0.98]"
                         >
-                          ✓ Confirmer la réponse
+                          ✓ Confirmer
                         </button>
                       </div>
                     </div>
@@ -365,19 +407,19 @@ export default function ModeratorDashboard() {
                 )}
 
                 {revealed && (
-                  <div className="slide-up mt-5 flex flex-col gap-3 rounded-xl border border-emerald-400/30 bg-emerald-400/[0.06] p-4 sm:flex-row sm:items-center">
-                    <p className="text-sm text-emerald-100/90">
-                      <span className="font-display font-bold text-emerald-300">
-                        Réponse {revealedChoice} envoyée au live.
+                  <div className="rise-in mt-6 flex flex-col gap-4 border border-emerald-400/40 bg-emerald-400/[0.05] p-5 sm:flex-row sm:items-center">
+                    <p className="text-sm leading-relaxed text-paper/85">
+                      <span className="font-display text-base font-semibold uppercase tracking-wide text-emerald-400">
+                        Réponse {revealedChoice} à l'antenne.
                       </span>{' '}
                       {revealedChoice === question.correct_answer
-                        ? 'C’était la bonne réponse. 🎉'
+                        ? 'C’était la bonne réponse.'
                         : `La bonne réponse était la ${question.correct_answer}.`}
                     </p>
                     <button
                       onClick={() => studio.generate(difficulty)}
                       disabled={loading}
-                      className="rounded-xl bg-white px-5 py-2.5 font-display text-sm font-bold text-night-950 transition hover:bg-white/90 sm:ml-auto disabled:opacity-50"
+                      className="bg-paper px-6 py-3 font-display text-sm font-semibold uppercase tracking-wide text-ink-950 transition hover:bg-white sm:ml-auto disabled:opacity-50"
                     >
                       Question suivante →
                     </button>
@@ -390,58 +432,54 @@ export default function ModeratorDashboard() {
 
         {/* ================= COLONNE LATÉRALE ================= */}
         <div className="space-y-5">
-          {/* ----- Sortie OBS ----- */}
           <ObsOutput />
-          {/* ----- Moniteur live ----- */}
-          <section className="overflow-hidden rounded-2xl border border-white/10 bg-night-950/70">
-            <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5">
-              <p className="text-[11px] font-bold tracking-[0.25em] text-white/40">
-                MONITEUR — RETOUR LIVE
+
+          {/* ----- 03 Retour live ----- */}
+          <section className="border border-paper/10 bg-ink-950">
+            <div className="flex items-center justify-between border-b border-paper/10 px-5 py-3">
+              <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-paper-dim">
+                <span className="mr-3 font-bold text-signal-500">03</span>Retour live
               </p>
-              <span className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-live-500">
-                <span className="onair-dot h-1.5 w-1.5 rounded-full bg-live-500" /> REC
+              <span className="flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-signal-500">
+                <span className="onair-blink inline-block h-2 w-2 bg-signal-500" /> Rec
               </span>
             </div>
-            <div className="panel-texture p-4">
+            <div className="p-5">
               {status === 'idle' || !question ? (
-                <div className="rounded-lg bg-black/40 px-4 py-8 text-center">
-                  <p className="font-display text-sm font-bold tracking-[0.2em] text-white/40">
-                    LE QUIZ COMMENCE BIENTÔT
+                <div className="border border-paper/15 px-4 py-10 text-center">
+                  <p className="font-display text-lg font-medium uppercase tracking-tight text-paper/45">
+                    Bientôt à l'antenne
                   </p>
-                  <div className="mx-auto mt-4 flex w-24 items-center gap-1">
-                    {[0, 1, 2].map((i) => (
-                      <span key={i} className="h-1 flex-1 rounded-full bg-white/15" />
-                    ))}
-                  </div>
                 </div>
               ) : (
-                <div className="ticker-in rounded-lg bg-black/40 p-3">
-                  <p className="line-clamp-2 font-display text-[13px] font-bold leading-snug text-white">
+                <div className="ticker-in">
+                  <p className="font-display line-clamp-3 text-base font-medium leading-snug text-paper">
                     {question.question_text}
                   </p>
-                  <div className="mt-3 grid grid-cols-2 gap-1.5">
+                  <div className="mt-4 space-y-1.5">
                     {LETTERS.map((l) => {
                       const hidden = hiddenChoices.includes(l)
                       const shown = revealed && revealedChoice === l
                       return (
                         <div
                           key={l}
-                          className={`truncate rounded-md px-2 py-1.5 text-[11px] font-bold ${
+                          className={`flex items-center gap-2 px-2 py-1.5 font-mono text-[11px] ${
                             shown
-                              ? 'bg-emerald-400 text-night-950'
+                              ? 'bg-emerald-400 font-bold text-ink-950'
                               : hidden
-                                ? 'bg-white/5 text-white/25 line-through'
-                                : 'bg-white/10 text-white/80'
+                                ? 'text-paper/25 line-through'
+                                : 'bg-paper/[0.06] text-paper/80'
                           }`}
                         >
-                          {l} · {choiceText(l)}
+                          <span className="font-bold">{l}</span>
+                          <span className="truncate">{choiceText(l)}</span>
                         </div>
                       )
                     })}
                   </div>
                   {revealed && (
-                    <p className="mt-2 text-center text-[11px] font-bold tracking-widest text-emerald-300">
-                      ✓ RÉPONSE {revealedChoice} RÉVÉLÉE
+                    <p className="mt-3 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-400">
+                      ✓ Réponse {revealedChoice} révélée
                     </p>
                   )}
                 </div>
@@ -449,21 +487,27 @@ export default function ModeratorDashboard() {
             </div>
           </section>
 
-          {/* ----- Joker 50/50 (avec confirmation) ----- */}
-          <section className="rounded-2xl border border-signal-400/25 bg-gradient-to-b from-signal-500/15 to-night-900/70 p-5">
-            <div className="flex items-center gap-3">
-              <span className="font-display flex h-10 w-10 items-center justify-center rounded-xl bg-signal-400/20 text-lg font-bold text-signal-400">
-                ½
-              </span>
-              <div>
-                <h3 className="font-display text-base font-bold text-white">Joker 50/50</h3>
-                <p className="text-xs text-white/50">Élimine 2 mauvaises réponses sur le live.</p>
-              </div>
-              {jokerUsed && (
-                <span className="ml-auto rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold tracking-widest text-white/50">
-                  UTILISÉ
-                </span>
-              )}
+          {/* ----- 04 Joker ----- */}
+          <section className="border border-paper/10 bg-ink-900 p-5">
+            <SectionLabel
+              number="04"
+              right={
+                jokerUsed && (
+                  <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/35">
+                    Épuisé
+                  </span>
+                )
+              }
+            >
+              Joker 50/50
+            </SectionLabel>
+            <div className="mt-4 flex items-end justify-between">
+              <p className="font-display text-5xl font-semibold tracking-tight text-paper">
+                50<span className="text-signal-500">/</span>50
+              </p>
+              <p className="max-w-[130px] text-right text-xs leading-snug text-paper-dim">
+                Élimine 2 mauvaises réponses à l'antenne.
+              </p>
             </div>
 
             <div className="mt-4">
@@ -471,58 +515,51 @@ export default function ModeratorDashboard() {
                 <button
                   onClick={() => setConfirmingJoker(true)}
                   disabled={!questionLive || jokerUsed}
-                  className="w-full rounded-xl border border-signal-400/40 bg-signal-500/20 px-4 py-3 font-display text-sm font-bold tracking-widest text-white transition hover:bg-signal-500/35 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-signal-500/20"
+                  className="w-full border border-signal-500/60 bg-signal-500/10 px-4 py-3.5 font-display text-sm font-semibold uppercase tracking-[0.14em] text-signal-500 transition hover:bg-signal-500 hover:text-ink-950 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:bg-signal-500/10 disabled:hover:text-signal-500"
                 >
-                  ACTIVER LE JOKER
+                  Activer le joker
                 </button>
               ) : (
-                <div className="slide-up rounded-xl border border-gold-400/40 bg-night-950/70 p-3">
-                  <p className="text-center text-sm font-bold text-gold-400">
-                    Confirmer l'activation du joker ?
+                <div className="rise-in border border-signal-500 bg-ink-950 p-4">
+                  <p className="text-center font-display text-sm font-semibold uppercase tracking-wide text-paper">
+                    Confirmer l'activation ?
                   </p>
-                  <p className="mt-1 text-center text-xs text-white/50">
+                  <p className="mt-1 text-center text-xs text-paper-dim">
                     2 mauvaises réponses seront retirées du live.
                   </p>
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     <button
                       onClick={() => setConfirmingJoker(false)}
-                      className="rounded-lg border border-white/20 px-3 py-2 text-sm font-bold text-white/70 transition hover:border-white/40 hover:text-white"
+                      className="border border-paper/25 px-3 py-2.5 font-display text-xs font-semibold uppercase tracking-wide text-paper/80 transition hover:border-paper/60 hover:text-paper"
                     >
                       Annuler
                     </button>
                     <button
                       onClick={handleJokerConfirm}
-                      className="rounded-lg bg-signal-400 px-3 py-2 font-display text-sm font-bold text-white transition hover:bg-signal-500 active:scale-[0.98]"
+                      className="bg-signal-500 px-3 py-2.5 font-display text-xs font-semibold uppercase tracking-wide text-ink-950 transition hover:bg-signal-400 active:scale-[0.98]"
                     >
                       Confirmer
                     </button>
                   </div>
                 </div>
               )}
-              {!questionLive && (
-                <p className="mt-2 text-center text-[11px] text-white/35">
-                  Disponible pendant une question à l'antenne.
-                </p>
-              )}
             </div>
           </section>
 
-          {/* ----- Journal régie ----- */}
-          <section className="rounded-2xl border border-white/10 bg-night-900/70 p-5">
-            <p className="text-[11px] font-bold tracking-[0.25em] text-white/40">
-              JOURNAL RÉGIE
-            </p>
-            <div className="mt-3 max-h-56 space-y-2.5 overflow-y-auto pr-1">
+          {/* ----- 06 Journal ----- */}
+          <section className="border border-paper/10 bg-ink-900 p-5">
+            <SectionLabel number="06">Journal régie</SectionLabel>
+            <div className="mt-4 max-h-56 space-y-3 overflow-y-auto pr-1">
               {log.length === 0 && (
-                <p className="text-sm text-white/35">
+                <p className="text-sm leading-relaxed text-paper-dim">
                   Les actions confirmées apparaîtront ici avec leur heure d'antenne.
                 </p>
               )}
               {log.map((entry) => (
-                <div key={entry.id} className="flex items-start gap-2.5 text-sm">
-                  <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${LOG_COLOR[entry.kind]}`} />
-                  <span className="shrink-0 font-mono text-xs text-white/35">{entry.time}</span>
-                  <span className="text-white/75">{entry.message}</span>
+                <div key={entry.id} className="flex items-start gap-3 text-[13px]">
+                  <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 ${LOG_COLOR[entry.kind]}`} />
+                  <span className="shrink-0 font-mono text-[11px] text-paper-dim">{entry.time}</span>
+                  <span className="text-paper/80">{entry.message}</span>
                 </div>
               ))}
             </div>
@@ -530,10 +567,9 @@ export default function ModeratorDashboard() {
         </div>
       </main>
 
-      <footer className="mx-auto max-w-7xl px-4 sm:px-6 pb-8">
-        <p className="border-t border-white/5 pt-4 text-center text-[11px] tracking-wide text-white/25">
-          STUDIO QUIZ — Régie protégée par code PIN · Les présélections ne sont jamais diffusées sans confirmation · Overlay public :{' '}
-          <span className="font-mono">/overlay</span>
+      <footer className="mx-auto max-w-7xl px-4 pb-8 sm:px-6">
+        <p className="border-t border-paper/10 pt-4 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-paper/30">
+          {BRAND.name} — Régie protégée · Overlay public : /overlay
         </p>
       </footer>
     </div>
