@@ -72,7 +72,7 @@ export default function PinGate({ onUnlock }) {
 
         <p className="mt-6 text-center text-xs text-white/30">
           L'overlay public du live est accessible sans code via{' '}
-          <span className="font-mono text-white/50">?view=overlay</span>
+          <span className="font-mono text-white/50">/overlay</span>
         </p>
       </div>
     </div>

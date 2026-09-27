@@ -29,7 +29,11 @@ npm run dev
 ```
 
 - Console modérateur : `http://localhost:5173/` (code PIN requis)
-- Overlay live (OBS) : `http://localhost:5173/?view=overlay`
+- Overlay live (OBS) : `http://localhost:5173/overlay`
+
+## Déploiement Vercel + OBS
+
+Suivez le guide **[DEPLOY.md](DEPLOY.md)** : déploiement, variables d'environnement, domaine personnalisé et configuration de la source navigateur OBS (plein écran ou bandeau bas transparent).
 
 ## Structure
 

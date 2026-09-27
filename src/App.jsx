@@ -4,19 +4,29 @@ import LiveOverlay from './components/LiveOverlay'
 import PinGate from './components/PinGate'
 
 /**
- * Routage minimal :
- * - `/`             → console modérateur (protégée par PIN)
- * - `/?view=overlay` → overlay public du live (source navigateur OBS)
+ * Routage :
+ * - `/`         → console modérateur (protégée par PIN)
+ * - `/overlay`  → overlay public du live (source navigateur OBS)
+ *   Options : ?transparent=1 (fond transparent pour OBS)
+ *             &layout=lower  (bandeau bas compact au lieu du plein écran)
+ * - `?view=overlay` reste supporté (compatibilité).
  */
-export default function App() {
+function isOverlayRoute() {
+  const path = window.location.pathname.replace(/\/+$/, '')
   const params = new URLSearchParams(window.location.search)
-  const isOverlay = params.get('view') === 'overlay'
+  return path === '/overlay' || params.get('view') === 'overlay'
+}
 
+export default function App() {
+  const [isOverlay] = useState(isOverlayRoute)
   const [unlocked, setUnlocked] = useState(
     () => sessionStorage.getItem('studio-pin-ok') === '1',
   )
 
-  if (isOverlay) return <LiveOverlay />
+  if (isOverlay) {
+    document.title = 'Studio Quiz — Overlay Live'
+    return <LiveOverlay />
+  }
   if (!unlocked) return <PinGate onUnlock={() => setUnlocked(true)} />
   return <ModeratorDashboard />
 }

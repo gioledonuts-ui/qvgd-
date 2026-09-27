@@ -131,7 +131,7 @@ export default function ModeratorDashboard() {
             </span>
             <Clock />
             <a
-              href="?view=overlay"
+              href="/overlay"
               target="_blank"
               rel="noreferrer"
               className="rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold tracking-wider text-white/80 transition hover:border-white/30 hover:text-white"
@@ -390,6 +390,8 @@ export default function ModeratorDashboard() {
 
         {/* ================= COLONNE LATÉRALE ================= */}
         <div className="space-y-5">
+          {/* ----- Sortie OBS ----- */}
+          <ObsOutput />
           {/* ----- Moniteur live ----- */}
           <section className="overflow-hidden rounded-2xl border border-white/10 bg-night-950/70">
             <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5">
@@ -531,7 +533,7 @@ export default function ModeratorDashboard() {
       <footer className="mx-auto max-w-7xl px-4 sm:px-6 pb-8">
         <p className="border-t border-white/5 pt-4 text-center text-[11px] tracking-wide text-white/25">
           STUDIO QUIZ — Régie protégée par code PIN · Les présélections ne sont jamais diffusées sans confirmation · Overlay public :{' '}
-          <span className="font-mono">?view=overlay</span>
+          <span className="font-mono">/overlay</span>
         </p>
       </footer>
     </div>
